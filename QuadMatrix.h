@@ -18,12 +18,31 @@ public:
 		}
 	}
 
-	//friend vector<T> operator* (const QuadMatrix<T>& A, vector<T> b);
-	friend QuadMatrix<T> operator* (const QuadMatrix<T>& A, const QuadMatrix<T>& B);
+	QuadMatrix(vector<vector<T>> data) : Matrix<T>(data[0].size(), data[0].size()) {
+		if (data[0].size() != data.size()) {
+			cerr << "QuadMatrix(vector<vector<T>> data)!";
+		}
 
-	size_t order();
-	void print();
-	QuadMatrix<T> inv();
+		this->elems = vector<vector<T>>(data[0].size());
+
+		for (int i = 0; i < this->elems.size(); ++i) {
+			this->elems[i] = data[i];
+		}
+	}
+
+	//friend vector<T> operator* (const QuadMatrix<T>& A, vector<T> b);
+	template<typename L>
+	friend QuadMatrix<L> operator* (const QuadMatrix<L>& A, const QuadMatrix<L>& B);
+	template<typename L>
+	friend QuadMatrix<L> operator* (L coef, const QuadMatrix<L>& A);
+	template<typename L>
+	friend QuadMatrix<L> operator- (const QuadMatrix<L>& A, const QuadMatrix<L>& B);
+	template<typename L>
+	friend QuadMatrix<L> operator+ (const QuadMatrix<L>& A, const QuadMatrix<L>& B);
+
+	size_t order() const;
+	void print() const;
+	QuadMatrix<T> inv() const;
 };
 
 template<class T>
@@ -38,11 +57,11 @@ vector<T> mul(QuadMatrix<T> A, vector<T> b) {
 	return c;
 }
 
-template<typename T>
-QuadMatrix<T> operator* (const QuadMatrix<T>& A, const QuadMatrix<T>& B) {
+template<typename L>
+QuadMatrix<L> operator* (const QuadMatrix<L>& A, const QuadMatrix<L>& B) {
 	size_t n = A.order();
 
-	QuadMatrix<T> res(n);
+	QuadMatrix<L> res(n);
 
 	for (int i = 0; i < n; ++i) {
 		for (int j = 0; j < n; ++j) {
@@ -56,13 +75,57 @@ QuadMatrix<T> operator* (const QuadMatrix<T>& A, const QuadMatrix<T>& B) {
 	return res;
 }
 
+template<typename L>
+QuadMatrix<L> operator* (L coef, const QuadMatrix<L>& A) {
+	size_t n = A.order();
+	QuadMatrix<L> res(n);
+
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			res(i, j) = coef * A(i, j);
+		}
+	}
+
+	return res;
+}
+
+template<typename L>
+QuadMatrix<L> operator- (const QuadMatrix<L>& A, const QuadMatrix<L>& B) {
+	size_t n = A.order();
+
+	QuadMatrix<L> res(n);
+
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			res(i, j) = A(i, j) - B(i, j);
+		}
+	}
+
+	return res;
+}
+
+template<typename L>
+QuadMatrix<L> operator+ (const QuadMatrix<L>& A, const QuadMatrix<L>& B) {
+	size_t n = A.order();
+
+	QuadMatrix<L> res(n);
+
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			res(i, j) = A(i, j) + B(i, j);
+		}
+	}
+
+	return res;
+}
+
 template<class T>
-size_t QuadMatrix<T>::order() {
+size_t QuadMatrix<T>::order() const {
 	return this->elems.size();
 }
 
 template<class T>
-void QuadMatrix<T>::print() {
+void QuadMatrix<T>::print() const {
 	QuadMatrix A(*this);
 	size_t n = A.order();
 	for (int i = 0; i < n; ++i) {
@@ -75,7 +138,7 @@ void QuadMatrix<T>::print() {
 }
 
 template<class T>
-QuadMatrix<T> QuadMatrix<T>::inv() {
+QuadMatrix<T> QuadMatrix<T>::inv() const{
 	size_t size = (*this).order();
 	QuadMatrix A(*this), E(size);
 	for (size_t i = 0; i < size; ++i) {

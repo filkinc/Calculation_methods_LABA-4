@@ -14,6 +14,10 @@ public:
 		return elems[i][j];
 	}
 
+	T operator() (size_t i, size_t j) const {
+		return elems[i][j];
+	}
+
 	size_t rowCount() {
 		return elems.size();
 	}

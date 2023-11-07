@@ -52,31 +52,6 @@ pair<vector<T>, QuadMatrix<T>> gaussLinSolve(QuadMatrix<T> A, vector<T> b) {
 			}
 		}
 	}
-	/*cout << endl;
-	cout << "Прямой метод Гаусса: ";
-	for (int i = 0; i < n; ++i) {
-		cout << std::endl;
-		for (int j = 0; j < n; ++j) {
-			cout << C(i, j) << ' ';
-		}
-	}*/
-	//C.print();
-	//cout << endl;
-
-	/*ofstream ansFile;
-	ansFile.open("AnswerFile.txt", ios_base::out);
-	ansFile << endl;
-	ansFile << "Прямой метод Гаусса: ";
-	for (int i = 0; i < n; ++i) {
-		ansFile << endl;
-		for (int j = 0; j < n; ++j) {
-			ansFile << C(i, j) << ' ';
-		}
-	}
-	ansFile << endl;
-	ansFile.close();*/
-
-
 	return { upperTriagLinSolve(C, y), C };
 }
 
@@ -211,4 +186,20 @@ T condEstimate(QuadMatrix<T> matrix, T(&f)(vector<T>)) {
 	auto dx = diff(px, kx);
 
 	return f(dx) * f(kb) / f(db) / f(kx);
+}
+
+template<class T>
+T normDiscrepancyVectorGauss(QuadMatrix<T> A, vector<T> b, T(&f)(vector<T>)) {
+	vector<T> x = gaussLinSolve(A, b).first;
+	vector<T> b1 = mul(A, x);
+	return f(diff(b, b1));
+}
+
+template<class T>
+T normDiscrepancyVectorQR(QuadMatrix<T> A, vector<T> b, T(&f)(vector<T>)) {
+	QuadMatrix<T> Q = qrDecomposition(A).first;
+	QuadMatrix<T> R = qrDecomposition(A).second;
+	vector<T> x = qrLinSolve(Q, R, b);
+	vector<T> b1 = mul(A, x);
+	return f(diff(b, b1));
 }

@@ -6,8 +6,8 @@
 #include <utility>
 #include <cmath>
 #include "QuadMatrix.h"
+#include "LinSolveAlgs.h"
 
-//Кубическая норма для вектора и матрицы
 template <class T>
 T norm_inf(vector<T> x) {
 	size_t n = x.size();
@@ -37,7 +37,6 @@ T norm_inf(QuadMatrix<T> A) {
 	return aMax;
 }
 
-//Октаэдральная норма для вектора и матрицы
 template<class T>
 T norm_1(vector<T> x) {
 	size_t n = x.size();
@@ -62,42 +61,3 @@ T norm_1(QuadMatrix<T> A) {
 	}
 	return aMax;
 }
-
-template<class T>
-T normDiscrepancyVectorGauss(QuadMatrix<T> A, vector<T> b, T(&f)(vector<T>)) {
-	vector<T> x = gaussLinSolve(A, b).first;
-	vector<T> b1 = mul(A, x);
-	return f(diff(b, b1));
-}
-
-template<class T>
-T normDiscrepancyVectorQR(QuadMatrix<T> A, vector<T> b, T(&f)(vector<T>)) {
-	QuadMatrix<T> Q = qrDecomposition(A).first;
-	QuadMatrix<T> R = qrDecomposition(A).second;
-	vector<T> x = qrLinSolve(Q, R, b);
-	vector<T> b1 = mul(A, x);
-	return f(diff(b, b1));
-}
-
-//Шаровая норма для вектора и матрицы(норма Фробениуса)
-//template<class T>
-//T norm_2(vector<T> x) {
-//	size_t n = x.size();
-//	T xSum = 0;
-//	for (int i = 0; i < n; ++i) {
-//		xSum += x[i] * x[i];
-//	}
-//	return sqrt(xSum);
-//}
-//Это не точно
-//template<class T>
-//T norm_F(QuadMatrix<T> A) {
-//	size_t n = A.order();
-//	T aSum = 0;
-//	for (int i = 0; i < n; ++i) {
-//		for (int j = 0; j < n; ++j) {
-//			aSum += A(i, j) * A(i, j);
-//		}
-//	}
-//	return sqrt(aSum);
-//}
