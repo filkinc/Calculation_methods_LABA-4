@@ -94,18 +94,78 @@ int main()
     cout << endl << endl;
 
     cout << "Стандартный метод QR:";
-    QuadMatrix<double> MatrixEigenQRSimple = qrSimpleSearchEigenvalue(matrix);
+    auto vecEigenValueQRSimple = qrSimpleSearchEigenvalue(matrix, 4);
     cout << endl;
-    /*cout << "Исходная матрица (A):";
-    for (int i = 0; i < n; i++) {
+
+    for (int i = 0; i < n; ++i) {
+        cout << vecEigenValueQRSimple.eigenValues[i] << " " << endl;
+    }
+    cout << "Количесво итераций QR:" << endl;
+    cout << vecEigenValueQRSimple.iterationCount << endl << endl;
+    
+    cout << "Метод QR + сдвиг:";
+    auto vecEigenValueQRPlusShift = qrPlusShiftSearchEigenvalue(matrix, 4);
+    cout << endl;
+
+    for (int i = 0; i < n; ++i) {
+        cout << vecEigenValueQRPlusShift.eigenValues[i] << " " << endl;
+    }
+    cout << "Количесво итераций QR + сдвиг:" << endl;
+    cout << vecEigenValueQRPlusShift.iterationCount << endl << endl;
+
+    cout << "Матрица Хесенберга: ";
+    cout << endl << "Врашение № 1";
+    auto matrixHesenbergA1 = HesenbergMatrix(matrix, 2, 3);
+    for (int i = 0; i < n; ++i) {
         cout << endl;
-        for (int j = 0; j < n; j++) {
-            cout << matrix(i, j) << " ";
+        for (int j = 0; j < n; ++j) {
+            cout << matrixHesenbergA1(i, j) << " ";
         }
     }
-    cout << endl;*/
-    cout << "Метод QR + сдвиг:";
-    QuadMatrix<double> MatrixEigenQRPlusShift = qrPlusShiftSearchEigenvalue(matrix);
+    cout << endl;
+
+    cout << endl << "Врашение № 2";
+    auto matrixHesenbergA2 = HesenbergMatrix(matrixHesenbergA1, 2, 4);
+    for (int i = 0; i < n; ++i) {
+        cout << endl;
+        for (int j = 0; j < n; ++j) {
+            cout << matrixHesenbergA2(i, j) << " ";
+        }
+    }
+    cout << endl;
+
+    cout << endl << "Врашение № 3";
+    auto matrixHesenbergFinal = HesenbergMatrix(matrixHesenbergA2, 3, 4);
+    for (int i = 0; i < n; ++i) {
+        cout << endl;
+        for (int j = 0; j < n; ++j) {
+            cout << matrixHesenbergFinal(i, j) << " ";
+        }
+    }
+    cout << endl;
+
+
+    cout << endl << "Метод QR + матрица Хесенберга" << endl;
+    auto vecEigenValueQRPlusHesenberg = qrHesenbergSearchEigenvalue(matrixHesenbergFinal);
+
+    for (int i = 0; i < n; ++i) {
+        cout << vecEigenValueQRPlusHesenberg.eigenValues[i] << " " << endl;
+    }
+
+    cout << "Количесво итераций QR + матрица Хесенберга:" << endl;
+    cout << vecEigenValueQRPlusHesenberg.iterationCount << endl;
+
+
+    cout << endl << "Метод QR + сдвиг + матрица Хесенберга" << endl;
+    auto vecEigenValueQRPlusShiftHesenberg = qrPlusShiftHesenbergSearchEigenvalue(matrixHesenbergFinal);
+
+    for (int i = 0; i < n; ++i) {
+        cout << vecEigenValueQRPlusShiftHesenberg.eigenValues[i] << " " << endl;
+    }
+
+    cout << "Количесво итераций QR + сдвиг + матрица Хесенберга:" << endl;
+    cout << vecEigenValueQRPlusShiftHesenberg.iterationCount << endl << endl;
+
 
     return 0;
 }
