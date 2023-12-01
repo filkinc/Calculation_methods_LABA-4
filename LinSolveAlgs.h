@@ -100,11 +100,11 @@ pair<QuadMatrix<T>, QuadMatrix<T>> qrDecomposition(QuadMatrix<T> A) {
 			swap(Q(k, m), Q(k, i));
 		}
 
-		if (fabs(A(i, i)) <= 1e-7) {
+		/*if (fabs(A(i, i)) <= 1e-7) {
 			cout << "Нулевой элемент на главной диагонали!";
 			system("pause");
 			exit(1);
-		}
+		}*/
 
 		for (int j = i + 1; j < n; ++j) {
 			c = (A(i, i)) / sqrt(A(i, i) * A(i, i) + A(j, i) * A(j, i));
@@ -161,6 +161,34 @@ vector<T> diff(const vector<T>& a, const vector<T>& b) {
 	}
 
 	return res;
+}
+
+template<class T> 
+vector<T> div(const vector<T>& a, T coef) {
+	int n = a.size();
+	vector<T> res(n);
+	for (int i = 0; i < n; ++i) {
+		res[i] = a[i] / coef;
+	}
+	return res;
+}
+
+template<class T>
+T compose(const vector<T>& a, const vector<T>& b) {
+	T res = 0;
+	for (int i = 0; i < a.size(); ++i) {
+		res += a[i] * b[i];
+	}
+	return res;
+}
+
+template<class T>
+void printVector(const vector<T>& vec) {
+	int n = vec.size();
+	for (int i = 0; i < n; ++i) {
+		cout << vec[i] << " ";
+	}
+	cout << endl;
 }
 
 template<class T>

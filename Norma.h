@@ -9,6 +9,17 @@
 #include "LinSolveAlgs.h"
 
 template <class T>
+T norm_2(const vector<T>& x){
+	size_t n = x.size();
+	T xSum = 0;
+
+	for (int i = 0; i < n; ++i) {
+		xSum += x[i] * x[i];
+	}
+	return sqrt(xSum);
+}
+
+template <class T>
 T norm_inf(vector<T> x) {
 	size_t n = x.size();
 	T xMax = 0;

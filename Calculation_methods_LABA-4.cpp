@@ -146,7 +146,7 @@ int main()
 
 
     cout << endl << "Метод QR + матрица Хесенберга" << endl;
-    auto vecEigenValueQRPlusHesenberg = qrHesenbergSearchEigenvalue(matrixHesenbergFinal);
+    auto vecEigenValueQRPlusHesenberg = qrHesenbergSearchEigenvalue(matrixHesenbergFinal, 4);
 
     for (int i = 0; i < n; ++i) {
         cout << vecEigenValueQRPlusHesenberg.eigenValues[i] << " " << endl;
@@ -157,7 +157,7 @@ int main()
 
 
     cout << endl << "Метод QR + сдвиг + матрица Хесенберга" << endl;
-    auto vecEigenValueQRPlusShiftHesenberg = qrPlusShiftHesenbergSearchEigenvalue(matrixHesenbergFinal);
+    auto vecEigenValueQRPlusShiftHesenberg = qrPlusShiftHesenbergSearchEigenvalue(matrixHesenbergFinal, 4);
 
     for (int i = 0; i < n; ++i) {
         cout << vecEigenValueQRPlusShiftHesenberg.eigenValues[i] << " " << endl;
@@ -166,7 +166,13 @@ int main()
     cout << "Количесво итераций QR + сдвиг + матрица Хесенберга:" << endl;
     cout << vecEigenValueQRPlusShiftHesenberg.iterationCount << endl << endl;
 
-
+    cout << "Нахождение собственных векторов методом обратной итерации: " << endl;
+    auto vecVectorEigenReverseIteration = eigenVectorReverseIteration(matrix, vecEigenValueQRPlusShift.eigenValues);
+    for (int i = 0; i < n; ++i) {
+        printVector(vecVectorEigenReverseIteration.eigenVector[i]);
+        cout << endl;
+    }
+    
     return 0;
 }
 
