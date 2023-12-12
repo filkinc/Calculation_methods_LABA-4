@@ -11,7 +11,6 @@
 #include "LinSolveAlgs.h"
 
 #define MAX_ITER 10
-#define EPS 1e-4
 
 template<class T>
 struct EigenValueSearchResults {
@@ -21,12 +20,10 @@ struct EigenValueSearchResults {
 };
 
 template <class T>
-EigenValueSearchResults<T> qrSimpleSearchEigenvalue(const QuadMatrix<T>& A, size_t n) {
+EigenValueSearchResults<T> qrSimpleSearchEigenvalue(const QuadMatrix<T>& A, size_t n, T eps) {
 	auto [curQ, curR] = qrDecomposition(A);
-	//size_t n = 4;
 	size_t iter = 0;
 	QuadMatrix<T> nextA = A;
-	//vector<T>  vecEigenValue;
 	if (n == 1) {
 		EigenValueSearchResults<T> res;
 		res.eigenValues = { nextA(0, 0) };
@@ -35,13 +32,12 @@ EigenValueSearchResults<T> qrSimpleSearchEigenvalue(const QuadMatrix<T>& A, size
 
 		return res;
 	}
-
 		while (true) {
 			nextA = curR * curQ;
 
 			//Временно коментим
-			if (iter < 5) {
-				cout << endl << "Вращение №: " << iter;
+			if (iter < 3) {
+				cout << endl /*<< "Вращение №: " << iter*/;
 				for (int i = 0; i < n; i++) {
 					cout << endl;
 					for (int j = 0; j < n; j++) {
@@ -51,40 +47,34 @@ EigenValueSearchResults<T> qrSimpleSearchEigenvalue(const QuadMatrix<T>& A, size
 				cout << endl;
 			}
 
-			curQ = qrDecomposition(nextA).first;
-			curR = qrDecomposition(nextA).second;
+
+			auto [curQ1, curR1] = qrDecomposition(nextA);
+			curQ = curQ1;
+			curR = curR1;
 
 			++iter;
 
-			if (fabs(nextA(n - 1,n - 2)) <= EPS) {
+			if (fabs(nextA(n - 1,n - 2)) <= eps) {
 				break;
 			}
 		}
 		
-		/*QuadMatrix<T> smallA(n - 1);
+		T curEigen = nextA(n - 1, n - 1);
 
-		for (int i = 0; i < n - 1; ++i) {
-			for (int j = 0; j < n - 1; ++j) {
-				smallA(i, j) = nextA(i, j);
-			}
-		}*/
+		nextA.resize(n - 1);
 
-		for (int i = 0; i < n - 1; ++i) {
-			for (int j = 0; j < n - 1; ++j) {
-				smallA(i, j) = nextA(i, j);
-			}
-		}
-			
-		auto res = qrSimpleSearchEigenvalue(smallA, n - 1);
-		res.eigenValues.push_back(nextA(n - 1, n - 1));
+		auto res = qrSimpleSearchEigenvalue(nextA, n - 1, eps);
+		res.eigenValues.push_back(curEigen);
+		
 		res.iterationCount += iter;
 		return res;
 }
 
 template <class T>
-EigenValueSearchResults<T> qrPlusShiftSearchEigenvalue(QuadMatrix<T> A, int n) {
+EigenValueSearchResults<T> qrPlusShiftSearchEigenvalue(const QuadMatrix<T>& A, size_t n, T eps) {
 	size_t iter = 0;
-	
+	//A.print();
+
 	if (n == 1) {
 		EigenValueSearchResults<T> res;
 		res.eigenValues = { A(0, 0) };
@@ -102,22 +92,22 @@ EigenValueSearchResults<T> qrPlusShiftSearchEigenvalue(QuadMatrix<T> A, int n) {
 		E(i, i) = 1;
 	}
 
-	A = A - sigma * E;
+	QuadMatrix<T> nextA = A - sigma * E;
 
-	auto [curQ, curR] = qrDecomposition(A);
-	QuadMatrix<T> nextA = A;
+	auto [curQ, curR] = qrDecomposition(nextA);
+	
 
 	while (true) {
 
 		nextA = (curR * curQ) + (sigma * E);
 
-		if (fabs(nextA(n - 1, n - 2)) <= EPS) {
+		if (fabs(nextA(n - 1, n - 2)) <= eps) {
 			break;
 		}
 
 		//Временно коментим
-		if (iter < 5) {
-			cout << endl << "Вращение №: " << iter;
+		if (iter < 3) {
+			cout << endl /*<< "Вращение №: " << iter*/;
 			for (int i = 0; i < n; i++) {
 				cout << endl;
 				for (int j = 0; j < n; j++) {
@@ -129,22 +119,19 @@ EigenValueSearchResults<T> qrPlusShiftSearchEigenvalue(QuadMatrix<T> A, int n) {
 
 		sigma = nextA(n - 1, n - 1);
 		nextA = nextA - (sigma * E);
-		curQ = qrDecomposition(nextA).first;
-		curR = qrDecomposition(nextA).second;
-
+		auto [curQ1, curR1] = qrDecomposition(nextA);
+		curQ = curQ1;
+		curR = curR1;
+		
 		++iter;
 	}
 
-	QuadMatrix<T> smallA(n - 1);
+	T curEigen = nextA(n - 1, n - 1);
 
-	for (int i = 0; i < n - 1; ++i) {
-		for (int j = 0; j < n - 1; ++j) {
-			smallA(i, j) = nextA(i, j);
-		}
-	}
+	nextA.resize(n - 1);
 
-	auto res = qrPlusShiftSearchEigenvalue(smallA, n - 1);
-	res.eigenValues.push_back(nextA(n - 1, n - 1));
+	auto res = qrPlusShiftSearchEigenvalue(nextA, n - 1, eps);
+	res.eigenValues.push_back(curEigen);
 	res.iterationCount += iter;
 	return res;
 }
@@ -203,17 +190,29 @@ QuadMatrix<T> HesenbergMatrix(const QuadMatrix<T>& A, int k, int l) {
 }
 
 template <class T>
-EigenValueSearchResults<T> qrHesenbergSearchEigenvalue(const QuadMatrix<T>& A, int n) {
-	return qrSimpleSearchEigenvalue(A, n);
+EigenValueSearchResults<T> qrHesenbergSearchEigenvalue(const QuadMatrix<T>& A, int n, T eps) {
+	QuadMatrix<T> H = A;
+	for (int l = 3; l <= n; ++l) {
+		for (int k = 2; k <= l - 1; ++k) {
+			H = HesenbergMatrix(H, k, l);
+		}
+	}
+	return qrSimpleSearchEigenvalue(H, n, eps);
 }
 
 template <class T>
-EigenValueSearchResults<T> qrPlusShiftHesenbergSearchEigenvalue(const QuadMatrix<T>& A, int n) {
-	return qrPlusShiftSearchEigenvalue(A, n);
+EigenValueSearchResults<T> qrPlusShiftHesenbergSearchEigenvalue(const QuadMatrix<T>& A, int n, T eps) {
+	QuadMatrix<T> H = A;
+	for (int l = 3; l <= n; ++l) {
+		for (int k = 2; k <= l - 1; ++k) {
+			H = HesenbergMatrix(H, k, l);
+		}
+	}
+	return qrPlusShiftSearchEigenvalue(H, n, eps);
 }
 
 template <class T>
-EigenValueSearchResults<T> eigenVectorReverseIteration(const QuadMatrix<T>& A, vector<T> lambda) {
+EigenValueSearchResults<T> eigenVectorReverseIteration(const QuadMatrix<T>& A, vector<T> lambda, T eps) {
 	int n = A.order();
 	int k = 0;
 	vector<T> curVecEigen(n);
@@ -228,13 +227,14 @@ EigenValueSearchResults<T> eigenVectorReverseIteration(const QuadMatrix<T>& A, v
 	}
 
 	for (int i = 0; i < n; ++i) {
+		//int iter = 0;
 		int iter = 0;
 		QuadMatrix<T> B = (A - lambda[i] * E);
 		auto Binv = B.inv();
-		while (iter < MAX_ITER) {
+		while (true) {
 			nextVecEigen = Binv * curVecEigen;
 			nextVecEigen = div(nextVecEigen, norm_2(nextVecEigen));
-			if ( fabs(fabs(compose(nextVecEigen, curVecEigen)) - 1) <= EPS ) {
+			if ( fabs(fabs(compose(nextVecEigen, curVecEigen)) - 1) <= eps ) {
 				break;
 			}
 			/*printVector(nextVecEigen);
@@ -242,16 +242,63 @@ EigenValueSearchResults<T> eigenVectorReverseIteration(const QuadMatrix<T>& A, v
 			curVecEigen = nextVecEigen;
 			++iter;
 		}
+		res.iterationCount += iter;
 
-		if (iter >= MAX_ITER) {
-			cout << "больше " << MAX_ITER << " итераций" << endl;
-		}
 		res.eigenVector.push_back(curVecEigen);
+		//res.eigenValues += iter;
 	}
 	return res;
 }
 
-//template<class T>
-//EigenValueSearchResults<T> eigenVectorReley(const QuadMatrix<T>& A, const vector<T>& lambda) {
-//
-//}
+template<class T>
+EigenValueSearchResults<T> eigenVectorReley(const QuadMatrix<T>& A, const vector<T>& vecEigen, T eps) {
+	int n = A.order();
+	int k = 0;
+	vector<T> curVecEigen(n);
+	vector<T> nextVecEigen(n);
+	curVecEigen[0] = 1;
+
+	vector<T> lambda = vecEigen;
+	printVector(lambda);
+	EigenValueSearchResults<T> res;
+
+	QuadMatrix<T> E(n);
+	for (int i = 0; i < n; ++i) {
+		E(i, i) = 1;
+	}
+
+	for (int i = 0; i < n; ++i) {
+		//int iter = 0;
+		int iter = 0;
+		QuadMatrix<T> B = (A - lambda[i] * E);
+		auto Binv = B.inv();
+		cout << "labda change " << i << endl;
+		while (true) {
+			cout << lambda[i] << endl;
+			nextVecEigen = Binv * curVecEigen;
+			nextVecEigen = div(nextVecEigen, norm_2(nextVecEigen));
+			if (fabs(fabs(compose(nextVecEigen, curVecEigen)) - 1) <= eps) {
+				break;
+			}
+			lambda[i] = compose(nextVecEigen, A.transposed() * nextVecEigen) / compose(nextVecEigen, nextVecEigen);
+			
+			curVecEigen = nextVecEigen;
+			++iter;
+		}
+		res.iterationCount += iter;
+
+		res.eigenVector.push_back(curVecEigen);
+		//res.eigenValues += iter;
+	}
+	return res;
+}
+
+template<class T> 
+vector<T> checkEigenVector(const QuadMatrix<T>& A, const vector<vector<T>>& vecVectorEigen, const vector<T>& lambda) {
+	int n = vecVectorEigen.size();
+	vector<T> chekEigenValue;
+	for (int i = 0; i < n; ++i) {
+		chekEigenValue.push_back( norm_2( diff( A * vecVectorEigen[i], coefcompose(lambda[i], vecVectorEigen[i]) ) ) );
+	}
+	return chekEigenValue;
+}

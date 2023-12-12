@@ -9,43 +9,8 @@
 using namespace std;
 ofstream ansFile;
 
-//template<class T>
-//void test() {
-//    QuadMatrix<T> matrix({
-//        {1.50, 0.00, -0.43, -0.75},
-//        {0.00, 3.00, 0.87, -0.50},
-//        {-0.43, 0.87, 2.90, -0.22},
-//        {-0.75, -0.50, -0.22, 2.60}
-//        });
-//
-//    size_t n = matrix.order();
-//
-//    ansFile << "Исходная матрица (A):";
-//    for (int i = 0; i < n; i++) {
-//        ansFile << endl;
-//        for (int j = 0; j < n; j++) {
-//            ansFile << matrix(i, j) << " ";
-//        }
-//    }
-//    ansFile << endl << endl;
-//
-//    QuadMatrix<T> MatrixEigen = qrSearchEigenvalue(matrix);
-//
-//    ansFile << "Получившаяся матрица А:";
-//    for (int i = 0; i < n; i++) {
-//        ansFile << endl;
-//        for (int j = 0; j < n; j++) {
-//            ansFile << MatrixEigen(i, j) << " ";
-//        }
-//    }
-//    ansFile << endl << endl;
-//}
-
-
-int main()
-{
-    setlocale(LC_ALL, "Russian");
-
+template<class T>
+void test(T eps) {
     /*vector<double> fileVector;
     ifstream matrixFile;
     matrixFile.open("D1.txt");
@@ -55,7 +20,7 @@ int main()
         matrixFile >> i;
         fileVector.push_back(i);
     }
- 
+
     int k = 0;
 
     QuadMatrix<double> matrix(n);
@@ -73,9 +38,7 @@ int main()
     }
     matrixFile.close();*/
 
-    size_t n = 4;
-
-    QuadMatrix<double> matrix({
+    QuadMatrix<T> matrix({
         {1.50, 0.00, -0.43, -0.75},
         {0.00, 3.00, 0.87, -0.50},
         {-0.43, 0.87, 2.90, -0.22},
@@ -83,6 +46,8 @@ int main()
         });
 
     //ansFile.open("AnswerFileDATA.txt");
+
+    size_t n = matrix.order();
 
     cout << "Исходная матрица (A):";
     for (int i = 0; i < n; i++) {
@@ -94,19 +59,21 @@ int main()
     cout << endl << endl;
 
     cout << "Стандартный метод QR:";
-    auto vecEigenValueQRSimple = qrSimpleSearchEigenvalue(matrix, 4);
+    auto vecEigenValueQRSimple = qrSimpleSearchEigenvalue(matrix, 4, eps);
     cout << endl;
 
+    cout << "Вектор собственных значений метод QR: " << endl;
     for (int i = 0; i < n; ++i) {
         cout << vecEigenValueQRSimple.eigenValues[i] << " " << endl;
     }
     cout << "Количесво итераций QR:" << endl;
     cout << vecEigenValueQRSimple.iterationCount << endl << endl;
-    
+
     cout << "Метод QR + сдвиг:";
-    auto vecEigenValueQRPlusShift = qrPlusShiftSearchEigenvalue(matrix, 4);
+    auto vecEigenValueQRPlusShift = qrPlusShiftSearchEigenvalue(matrix, 4, eps);
     cout << endl;
 
+    cout << "Вектор собственных значений метод QR + сдвиг: " << endl;
     for (int i = 0; i < n; ++i) {
         cout << vecEigenValueQRPlusShift.eigenValues[i] << " " << endl;
     }
@@ -145,9 +112,10 @@ int main()
     cout << endl;
 
 
-    cout << endl << "Метод QR + матрица Хесенберга" << endl;
-    auto vecEigenValueQRPlusHesenberg = qrHesenbergSearchEigenvalue(matrixHesenbergFinal, 4);
+    cout << endl << "Метод QR + матрица Хесенберга";
+    auto vecEigenValueQRPlusHesenberg = qrHesenbergSearchEigenvalue(matrix, 4, eps);
 
+    cout << endl << "Вектор собственных значений метод QR + матрица Хесенберга: " << endl;
     for (int i = 0; i < n; ++i) {
         cout << vecEigenValueQRPlusHesenberg.eigenValues[i] << " " << endl;
     }
@@ -156,9 +124,10 @@ int main()
     cout << vecEigenValueQRPlusHesenberg.iterationCount << endl;
 
 
-    cout << endl << "Метод QR + сдвиг + матрица Хесенберга" << endl;
-    auto vecEigenValueQRPlusShiftHesenberg = qrPlusShiftHesenbergSearchEigenvalue(matrixHesenbergFinal, 4);
+    cout << endl << "Метод QR + сдвиг + матрица Хесенберга";
+    auto vecEigenValueQRPlusShiftHesenberg = qrPlusShiftHesenbergSearchEigenvalue(matrix, 4, eps);
 
+    cout << endl << "Вектор собственных значений метод QR + сдвиг + матрица Хесенберга: " << endl;
     for (int i = 0; i < n; ++i) {
         cout << vecEigenValueQRPlusShiftHesenberg.eigenValues[i] << " " << endl;
     }
@@ -167,12 +136,45 @@ int main()
     cout << vecEigenValueQRPlusShiftHesenberg.iterationCount << endl << endl;
 
     cout << "Нахождение собственных векторов методом обратной итерации: " << endl;
-    auto vecVectorEigenReverseIteration = eigenVectorReverseIteration(matrix, vecEigenValueQRPlusShift.eigenValues);
+    auto vecVectorEigenReverseIteration = eigenVectorReverseIteration(matrix, vecEigenValueQRPlusShift.eigenValues, eps);
+
     for (int i = 0; i < n; ++i) {
         printVector(vecVectorEigenReverseIteration.eigenVector[i]);
         cout << endl;
     }
-    
+
+    cout << "Количество итераций для нахождения собственных векторов метод обратной итерации:" << endl;
+    cout << vecVectorEigenReverseIteration.iterationCount << endl << endl;
+
+
+    cout << endl << "Нахождение собственных векторов методом обратной итерации + Рэлея: " << endl;
+    auto vecVectorEigenReley = eigenVectorReley(matrix, vecEigenValueQRPlusShift.eigenValues, eps);
+
+    cout << endl;
+    for (int i = 0; i < n; ++i) {
+        printVector(vecVectorEigenReley.eigenVector[i]);
+        cout << endl;
+    }
+
+    cout << "Количество итераций для нахождения собственных векторов метод обратной итарции + Рэлея:" << endl;
+    cout << vecVectorEigenReley.iterationCount << endl;
+
+    auto checkVector = checkEigenVector(matrix, vecVectorEigenReverseIteration.eigenVector, vecEigenValueQRPlusShift.eigenValues);
+    cout << endl << "Проверка собственных векторов: " << endl;
+    for (int i = 0; i < n; ++i) {
+        cout << checkVector[i] << endl;
+    }
+}
+
+
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+    cout << "Точность double:" << endl;
+    test<double>(1e-10);
+    cout << endl << endl << "Точность float:" << endl;
+    test<float>(1e-5);
+
     return 0;
 }
 
